@@ -19,7 +19,7 @@ class RandomDotDecisionTask:
     CIRCLE_RADIUS = 300
     ARROW_SCALE = 1
     PREFERRED_DIRECTION = [np.pi/2, 3*np.pi / 2] # 90° = upwards, 270° = downwards
-    SPEED = 2
+    SPEED = 4
     NUM_DOTS = 500
 
     def __init__(self, screen_width, screen_height, motion_strengths) -> None:
@@ -36,6 +36,7 @@ class RandomDotDecisionTask:
         self.running = True
         self.show_cum_dir = False
         self.game_start = False
+        self.show_info = False
 
         # task parameter
         self.round_counter = 0
@@ -60,7 +61,8 @@ class RandomDotDecisionTask:
             self.draw()
             self.clock.tick(30)
 
-        self._draw_end_screen()
+        if self.running:
+            self._draw_end_screen()
             
     def handle_events(self):
         for event in pygame.event.get():
@@ -68,34 +70,38 @@ class RandomDotDecisionTask:
                 self.running = False
             
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_x:
-                    self.show_cum_dir = not self.show_cum_dir
+                if self.game_start:
+                    if event.key == pygame.K_x:
+                        self.show_cum_dir = not self.show_cum_dir
 
-                if event.key == pygame.K_DOWN:
-                    decision_time = self.timer.stop()
-                    self.round_counter += 1
-                    self.timer.reset()
+                    if event.key == pygame.K_DOWN:
+                        decision_time = self.timer.stop()
+                        self.round_counter += 1
+                        self.timer.reset()
 
-                    check = self._check_answer(1, tools.pos_to_angle(*self._get_cumulative_direction()))
+                        check = self._check_answer(1, tools.pos_to_angle(*self._get_cumulative_direction()))
 
-                    self.answers.append((decision_time, check, self.coherence, self.pref_dir))
+                        self.answers.append((decision_time, check, self.coherence, self.pref_dir))
 
-                    self.dots, self.coherence, self.pref_dir = self._new_trial_initialization()
-                    self._after_trial_wait(check)
-                    self.timer.start()
+                        self.dots, self.coherence, self.pref_dir = self._new_trial_initialization()
+                        self._after_trial_wait(check)
+                        self.timer.start()
 
-                if event.key == pygame.K_UP:
-                    decision_time = self.timer.stop()
-                    self.round_counter += 1
-                    self.timer.reset()
+                    if event.key == pygame.K_UP:
+                        decision_time = self.timer.stop()
+                        self.round_counter += 1
+                        self.timer.reset()
 
-                    check = self._check_answer(0, tools.pos_to_angle(*self._get_cumulative_direction()))
+                        check = self._check_answer(0, tools.pos_to_angle(*self._get_cumulative_direction()))
 
-                    self.answers.append((decision_time, check, self.coherence, self.pref_dir))
+                        self.answers.append((decision_time, check, self.coherence, self.pref_dir))
 
-                    self.dots, self.coherence, self.pref_dir = self._new_trial_initialization()
-                    self._after_trial_wait(check)
-                    self.timer.start()
+                        self.dots, self.coherence, self.pref_dir = self._new_trial_initialization()
+                        self._after_trial_wait(check)
+                        self.timer.start()
+
+                    if event.key == pygame.K_i:
+                        self.show_info = not self.show_info
 
                 if event.key == pygame.K_SPACE:
                     if self.game_start == False:
@@ -117,6 +123,9 @@ class RandomDotDecisionTask:
 
         if self.show_cum_dir:
             self._draw_prefered_direction()
+
+        if self.show_info:
+            self._draw_info()
 
         pygame.display.flip()
 
@@ -185,6 +194,16 @@ class RandomDotDecisionTask:
                     self.center[1] + arrow_length * np.sin(cumulative_angle))
 
         pygame.draw.line(self.screen, Colour.GREEN, self.center, arrow_end, 3)
+    
+    def _draw_info(self):
+        font_size = 32
+        font = pygame.font.Font(None, font_size)
+        text = f"coherence: {self.coherence * 100}%"
+
+        text_surface = font.render(text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect()
+        self.screen.blit(text_surface, text_rect)
+        pass
 
     def _draw_start_screen(self):
         font_size = 32
@@ -230,8 +249,6 @@ class RandomDotDecisionTask:
         return dots, coherence, prefered_direction
     
     def _check_answer(self, direction_idx, actual_direction):
-        print(direction_idx, RandomDotDecisionTask.PREFERRED_DIRECTION[direction_idx], actual_direction)
-
         if np.abs(RandomDotDecisionTask.PREFERRED_DIRECTION[direction_idx] - actual_direction) < np.abs(RandomDotDecisionTask.PREFERRED_DIRECTION[1 - direction_idx] - actual_direction):
             return True
         else:
