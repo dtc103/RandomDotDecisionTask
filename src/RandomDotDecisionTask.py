@@ -74,7 +74,7 @@ class RandomDotDecisionTask:
                     if event.key == pygame.K_x:
                         self.show_cum_dir = not self.show_cum_dir
 
-                    if event.key == pygame.K_DOWN:
+                    if event.key == pygame.K_DOWN or event.key == pygame.K_s:
                         decision_time = self.timer.stop()
                         self.round_counter += 1
                         self.timer.reset()
@@ -87,7 +87,7 @@ class RandomDotDecisionTask:
                         self._after_trial_wait(check)
                         self.timer.start()
 
-                    if event.key == pygame.K_UP:
+                    if event.key == pygame.K_UP or event.key == pygame.K_w:
                         decision_time = self.timer.stop()
                         self.round_counter += 1
                         self.timer.reset()
@@ -110,6 +110,9 @@ class RandomDotDecisionTask:
                         pygame.display.flip()
                         time.sleep(2)
                         self.timer.start()
+                        
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
 
     def update(self):
         self._update_dots()

@@ -12,4 +12,4 @@ def pos_to_angle(x, y):
 def save_data(data, subject_name, header):
     data = pd.DataFrame(data)
 
-    data.to_csv(f"{subject_name}.csv", index=False, header=header)
+    data.to_csv(f"C:/Users/jan_k/OneDrive - bwedu/Banburismus_presentation/RandomDotDecisionTask/data/{subject_name}.csv", index=False, header=header)
